@@ -19,7 +19,6 @@ public class Pet{
      * Breed
      * Color
      */
-    @NotBlank
     String id;
     @NotBlank
     String name;
@@ -30,12 +29,14 @@ public class Pet{
     @NotBlank
     String color;
 
-    public Pet(@NotNull String id, @NotNull String name, @NotNull String species, @NotNull String breed, @NotNull String color) {
-        this.id = id;
+    public Pet(@NotNull String name, @NotNull String species, @NotNull String breed, @NotNull String color) {
         this.name = name;
         this.species = species;
         this.breed = breed;
         this.color = color;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
 }

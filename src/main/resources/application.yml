@@ -1,3 +1,25 @@
 micronaut:
   application:
     name: petsManagementSystem
+  security:
+    authentication: bearer
+    enabled: true
+    endpoints:
+      login:
+        enabled: true
+      logout:
+        enabled: true
+        get-allowed: true
+    token:
+      jwt:
+        generator:
+          access-token:
+            expiration: 1000
+        cookie:
+          enabled: false
+        enabled: true
+        signatures:
+          secret:
+            generator:
+              secret: pleaseChangeThisSecretForANewOne
+              jws-algorithm: HS256
