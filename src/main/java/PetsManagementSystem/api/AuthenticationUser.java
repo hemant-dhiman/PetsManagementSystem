@@ -20,7 +20,7 @@ public class AuthenticationUser implements AuthenticationProvider {
     @Override
     public Publisher<AuthenticationResponse> authenticate(@Nullable HttpRequest<?> httpRequest, AuthenticationRequest<?, ?> authenticationRequest) {
         String userName = authenticationRequest.getIdentity().toString();
-        if(ownerService.hasUser(userName, authenticationRequest.getSecret().toString())){
+        if (ownerService.hasUser(userName, authenticationRequest.getSecret().toString())) {
             UserDetails details = new UserDetails(userName, Collections.singletonList("ROLE_OWNER"), ownerService.getOwner(userName));
             //UserDetails d = new UserDetails();
             return Flowable.just(details);

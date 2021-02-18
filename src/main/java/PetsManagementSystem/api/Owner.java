@@ -4,6 +4,7 @@ import io.micronaut.core.annotation.Introspected;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
 import javax.validation.constraints.*;
 
 @Introspected
@@ -21,7 +22,7 @@ public class Owner {
      */
     String id;
     @NotBlank
-    @Min(value = 10,message = "Name should be minimum of 10 character")
+    @Min(value = 10, message = "Name should be minimum of 10 character")
     @Max(30)
     String full_name;
     @NotBlank
@@ -34,7 +35,7 @@ public class Owner {
     @NotBlank
     Address address;
 
-    public Owner(String full_name,  String user_name,  String email,  String password,  Address address) {
+    public Owner(String full_name, String user_name, String email, String password, Address address) {
         this.full_name = full_name;
         this.user_name = user_name;
         this.email = email;

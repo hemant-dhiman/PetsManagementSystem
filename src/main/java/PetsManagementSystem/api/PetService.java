@@ -1,6 +1,5 @@
 package PetsManagementSystem.api;
 
-import io.micronaut.security.authentication.Authentication;
 import io.reactivex.Single;
 import lombok.ToString;
 

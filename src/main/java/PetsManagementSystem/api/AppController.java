@@ -1,6 +1,5 @@
 package PetsManagementSystem.api;
 
-import com.nimbusds.jose.shaded.json.JSONObject;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.*;
 import io.micronaut.security.annotation.Secured;
@@ -11,8 +10,6 @@ import lombok.ToString;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.util.*;
 
 @ToString
