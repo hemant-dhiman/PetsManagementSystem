@@ -1,23 +1,16 @@
 package PetsManagementSystem.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jose.shaded.json.JSONObject;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.*;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.Authentication;
-import io.micronaut.security.authentication.AuthenticationUserDetailsAdapter;
-import io.micronaut.security.authentication.UserDetails;
 import io.micronaut.security.rules.SecurityRule;
 import io.reactivex.Single;
 import lombok.ToString;
-
 import javax.inject.Inject;
 import javax.validation.Valid;
-import java.security.Principal;
 import java.util.*;
-import java.util.logging.Logger;
 
 @ToString
 @Controller("/pms")
@@ -41,15 +34,26 @@ public class AppController {
 
     @Post("/pet")
     //@Secured("OWNER")
-    public Single<HttpResponse<Object>> addPets(@Valid @Body Pet petObj) {
-        return petService.addPet(petObj).map(o -> {
+    public Single<HttpResponse<Object>> addPets(@Valid @Body Pet petObj, Authentication authentication) {
+
+        HashMap<String, Object> data = new HashMap<>(authentication.getAttributes());
+        JSONObject ja = new JSONObject();
+        ja.merge(data.get(authentication.getName()));
+        String o_Id = String.valueOf(ja.get("id"));
+
+        return petService.addPet(o_Id, petObj).map(o -> {
             return HttpResponse.created(o);
         });
     }
 
     @Get("/pet")
-    public Single<HttpResponse<Object[]>> allPet() {
-        return Single.just(petService.pets()).map(o -> {
+    public Single<HttpResponse<Object[]>> allPet(Authentication authentication) {
+        HashMap<String, Object> data = new HashMap<>(authentication.getAttributes());
+        JSONObject ja = new JSONObject();
+        ja.merge(data.get(authentication.getName()));
+        String o_Id = String.valueOf(ja.get("id"));
+
+        return Single.just(petService.pets(o_Id)).map(o -> {
             return HttpResponse.ok(o);
         });
     }
@@ -59,7 +63,7 @@ public class AppController {
     // single paramtr path variable!
     public Single<Optional<Object>> getPet(@QueryValue String id) {
         return Single.defer(() -> {
-            return Single.just(Optional.ofNullable(petService.pets(id)));
+            return Single.just(Optional.ofNullable(petService.pet(id)));
         });
     }
 

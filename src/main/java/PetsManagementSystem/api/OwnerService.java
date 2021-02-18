@@ -1,11 +1,7 @@
 package PetsManagementSystem.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micronaut.http.HttpResponse;
-import io.micronaut.logging.impl.$Log4jLoggingSystemDefinitionClass;
 import io.micronaut.security.authentication.Authentication;
 import io.reactivex.Single;
-
 import javax.inject.Singleton;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,14 +18,14 @@ public class OwnerService {
         String generateId = String.valueOf(owners.size() + rand.nextInt(1000));
         ownerObj.setId(generateId);
         owners.put(ownerObj.user_name, ownerObj);
-        System.out.println("Owner added: -----> " + owners + "\n\n");
+        System.out.println("Owner added: -----> " + owners + "\n");
         return Single.just(ownerObj);
     }
 
     public Single<Object> updateOwner(Authentication auth, String old_key, Owner ownerObj) {
         owners.remove(old_key);
         owners.put(ownerObj.user_name, ownerObj);
-        System.out.println("Owner updated: -----> " + owners + "\n\n");
+        System.out.println("Owner updated: -----> " + owners + "\n");
         return Single.just(ownerObj);
     }
 
@@ -49,19 +45,14 @@ public class OwnerService {
         HashMap<String, Object> obj = new HashMap<>();
         if (!String.valueOf(owners.get(usr)).equals("null")) {
             obj.put(usr, owners.get(usr));
-            //System.out.println("user attributes: ----> " + obj + "\n\n");
+            System.out.println("user attributes: ----> " + obj + "\n");
             return obj;
         }
         return null;
     }
 
     public Boolean hasUser(String obj) {
-        //System.out.println(obj+"--->"+owners.containsKey(obj));
         return owners.containsKey(obj);
     }
 
-    //public Single<Object> updateOwner(String id) {
-    //  //String id = ownerObj.getId();
-    //return Single.just(owners.get(id));
-    //}
 }

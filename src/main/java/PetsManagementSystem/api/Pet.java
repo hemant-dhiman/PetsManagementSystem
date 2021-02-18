@@ -20,6 +20,7 @@ public class Pet{
      * Color
      */
     String id;
+    String o_id;
     @NotBlank
     String name;
     @NotBlank
@@ -38,5 +39,13 @@ public class Pet{
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getO_id() {
+        return o_id;
+    }
+
+    public void setO_id(String o_id) {
+        this.o_id = o_id;
     }
 }
