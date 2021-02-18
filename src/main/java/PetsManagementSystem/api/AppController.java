@@ -38,11 +38,7 @@ public class AppController {
     @Post("/pet")
     //@Secured("OWNER")
     public Single<HttpResponse<Object>> addPets(@Valid @Body Pet petObj, Authentication authentication) {
-
-        HashMap<String, Object> data = new HashMap<>(authentication.getAttributes());
-        JSONObject ja = new JSONObject();
-        ja.merge(data.get(authentication.getName()));
-        String o_Id = String.valueOf(ja.get("id"));
+        String o_Id = UserUtility.currentUserId(authentication);
 
         return petService.addPet(o_Id, petObj).map(o -> {
             return HttpResponse.created(o);
@@ -51,10 +47,7 @@ public class AppController {
 
     @Get("/pet")
     public Single<HttpResponse<Object[]>> allPet(Authentication authentication) {
-        HashMap<String, Object> data = new HashMap<>(authentication.getAttributes());
-        JSONObject ja = new JSONObject();
-        ja.merge(data.get(authentication.getName()));
-        String o_Id = String.valueOf(ja.get("id"));
+        String o_Id = UserUtility.currentUserId(authentication);
 
         return Single.just(petService.pets(o_Id)).map(o -> {
             return HttpResponse.ok(o);
@@ -62,12 +55,21 @@ public class AppController {
     }
 
     @Get("/pet/{id}")
-    // multiple paramtr query paramtr!
-    // single paramtr path variable!
-    public Single<Optional<Object>> getPet(@QueryValue String id) {
-        return Single.defer(() -> {
-            return Single.just(Optional.ofNullable(petService.pet(id)));
-        });
+    public Single<Object> getPet(@QueryValue String id, Authentication authentication) {
+        String o_Id = UserUtility.currentUserId(authentication);
+        //get Pet from Database
+        Pet pet;
+        try {
+            pet = (Pet) petService.getPet(id, o_Id).get(id);
+        } catch (Exception e) {
+            return Single.just(HttpResponse.unauthorized().body("pet id: " + id + " does not exist for user id " + o_Id + " or username " + authentication.getName()));
+        }
+        try {
+            return Single.just(pet);
+        } catch (Exception e) {
+            return Single.just(HttpResponse.badRequest().body("pet id: " + id + " does not exist for user id " + o_Id + " or username " + authentication.getName()));
+        }
+
     }
 
     @Get("/details")
@@ -83,24 +85,26 @@ public class AppController {
         if (ownerObj.user_name.equals("") || ownerObj.password.equals("")) {
             return Single.just(HttpResponse.badRequest().body("User_name or password must not blank!"));
         }
+        //Storing old Owner data which needs to be updated
         Owner oldOwnerData;
         try {
             oldOwnerData = (Owner) ownerService.getOwner(auth.getName()).get(auth.getName());
         } catch (NullPointerException e) {
-            return Single.just(HttpResponse.unauthorized()/*.body("Login First using  http://localhost:8080/login")*/);
+            return Single.just(HttpResponse.unauthorized());
         }
-
+        //Storing updated Owner data
         HashMap<String, Owner> updated = new HashMap<>();
         updated.put(ownerObj.user_name, ownerObj);
         Owner updatedOwnerData = (Owner) updated.get(ownerObj.user_name);
-
-        updatedOwnerData.id = oldOwnerData.id;
+        //password and user_name should be updated
         updatedOwnerData.password = ownerObj.password;
         updatedOwnerData.user_name = ownerObj.user_name;
+        //rest fields should be same
+        updatedOwnerData.id = oldOwnerData.id;
         updatedOwnerData.address = oldOwnerData.address;
         updatedOwnerData.email = oldOwnerData.email;
         updatedOwnerData.full_name = oldOwnerData.full_name;
-
+        //updating the owner in database
         if (ownerService.hasUser(oldOwnerData.user_name)) {
             return ownerService.updateOwner(auth, oldOwnerData.user_name, updatedOwnerData).map(HttpResponse::created);
         }
@@ -110,11 +114,12 @@ public class AppController {
 
     @Put("/pet/{id}")
     public Single<Object> updatePet(@Body Pet petObj, @QueryValue String id, Authentication authentication) {
+        if (petObj.name.equals("") || petObj.species.equals("") || petObj.breed.equals("") || petObj.color.equals("")) {
+            return Single.just(HttpResponse.badRequest().body("Four fields require to update the pet: [name, species, breed, color]"));
+        }
         // To get the current Logged user id
-        HashMap<String, Object> data = new HashMap<>(authentication.getAttributes());
-        JSONObject ja = new JSONObject();
-        ja.merge(data.get(authentication.getName()));
-        String o_Id = String.valueOf(ja.get("id"));
+        String o_Id = UserUtility.currentUserId(authentication);
+
         // Store the Old Pet Data
         Pet oldPetData;
         try {
@@ -127,8 +132,12 @@ public class AppController {
         updated.put(petObj.id, petObj);
         Pet updatedPetData = (Pet) updated.get(petObj.id);
         // id and owner_id must be same
-        updatedPetData.id = oldPetData.id;
-        updatedPetData.o_id = oldPetData.o_id;
+        try {
+            updatedPetData.id = oldPetData.id;
+            updatedPetData.o_id = oldPetData.o_id;
+        } catch (Exception e) {
+            return Single.just(HttpResponse.unauthorized().body("pet id: " + id + " does not exist for user id " + o_Id + " or username " + authentication.getName()));
+        }
         //update the other four field of pet
         updatedPetData.name = petObj.name;
         updatedPetData.species = petObj.species;
@@ -136,9 +145,27 @@ public class AppController {
         updatedPetData.color = petObj.color;
         //update the pet in database
         if (petService.hasPet(oldPetData.id)) {
-            return petService.updatePet(authentication, oldPetData.id, updatedPetData).map(HttpResponse::created);
+            return petService.updatePet(oldPetData.id, updatedPetData).map(HttpResponse::created);
         }
         return Single.just(HttpResponse.badRequest("Error!!"));
+    }
+
+    @Delete("/pet/{id}")
+    public Single<Object> deletePet(@QueryValue String id, Authentication authentication) {
+        // To get the current Logged user id
+        String o_Id = UserUtility.currentUserId(authentication);
+        System.out.println("Test Id:" + o_Id);
+
+        Pet pet;
+        try {
+            pet = (Pet) petService.getPet(id, o_Id).get(id);
+        } catch (Exception e) {
+            return Single.just(HttpResponse.unauthorized().body("pet id: " + id + " does not exist for user id " + o_Id + " or username " + authentication.getName()));
+        }
+        if (pet != null && pet.o_id.equals(o_Id)) {
+            return Single.just(petService.popPet(id));
+        }
+        return Single.just(HttpResponse.unauthorized().body("pet id: " + id + " does not exist for user id " + o_Id + " or username " + authentication.getName()));
     }
 
 }
@@ -153,13 +180,12 @@ public class AppController {
         System.out.println(obj);
         return ownerService.addPet(obj).map(HttpResponse::created);
     }*/
-
 /*HashMap<String, Object> data = new HashMap<>(authentication.getAttributes());
     JSONObject ja = new JSONObject();
         ja.merge(data.get(authentication.getName()));
                 return Single.just(ja.get("id"));*/
-
-
+/*.body("Login First using
+  http://localhost:8080/login")*/
 /*
 Owner temp;
         if (!String.valueOf(ownerService.getOwner(auth.getName()).get(auth.getName())).equals("null")) {
@@ -189,3 +215,11 @@ Owner temp;
         //System.out.println("UPDATED DATA: " + temp1 + "\n\n");
         //return Single.just(updated);
         */
+/*
+@Get("/pet/{id}")
+    public Single<Optional<Object>> getPet(@QueryValue String id) {
+        return Single.defer(() -> {
+            return Single.just(Optional.ofNullable(petService.pet(id)));
+        });
+    }
+ */

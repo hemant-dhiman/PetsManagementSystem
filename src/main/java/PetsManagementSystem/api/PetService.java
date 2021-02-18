@@ -3,6 +3,7 @@ package PetsManagementSystem.api;
 import io.micronaut.security.authentication.Authentication;
 import io.reactivex.Single;
 import lombok.ToString;
+
 import javax.inject.Singleton;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,7 +40,7 @@ public class PetService {
         return Collections.list(ownersPet.elements()).toArray();
     }
 
-    public Object pet(String id) {
+    public Object pet(String o_Id, String id) {
         return pets.get(id);
     }
 
@@ -59,7 +60,7 @@ public class PetService {
         return null;
     }
 
-    public Single<Object> updatePet(Authentication auth, String old_key, Pet petObj) {
+    public Single<Object> updatePet(String old_key, Pet petObj) {
         pets.remove(old_key);
         pets.put(petObj.id, petObj);
         System.out.println("pet updated: -----> " + pets + "\n");
@@ -69,4 +70,11 @@ public class PetService {
     public Boolean hasPet(String obj) {
         return pets.containsKey(obj);
     }
+
+    public Single<Object> popPet(String key) {
+        Pet p = pets.remove(key);
+        System.out.println("Delete Pet: " + p);
+        return Single.just(p);
+    }
+
 }
