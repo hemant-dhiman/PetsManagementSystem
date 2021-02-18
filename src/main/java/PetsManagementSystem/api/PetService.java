@@ -15,6 +15,7 @@ public class PetService {
     public Single<Object> addPet(Pet petObj) {
         String generateID = String.valueOf(pets.size()+1);
         petObj.setId(generateID);
+
         pets.put(generateID, petObj);
         System.out.println("Pet added: "+pets);
         return Single.just(petObj);

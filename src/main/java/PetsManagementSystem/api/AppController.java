@@ -12,6 +12,7 @@ import io.micronaut.security.authentication.UserDetails;
 import io.micronaut.security.rules.SecurityRule;
 import io.reactivex.Single;
 import lombok.ToString;
+
 import javax.inject.Inject;
 import javax.validation.Valid;
 import java.security.Principal;
@@ -32,7 +33,7 @@ public class AppController {
     @Post("/register")
     @Secured(SecurityRule.IS_ANONYMOUS)
     public Single<HttpResponse<Object>> addUser(@Valid @Body Owner ownerObj) {
-        if(!ownerService.hasUser(ownerObj.user_name)){
+        if (!ownerService.hasUser(ownerObj.user_name)) {
             return ownerService.addOwner(ownerObj).map(HttpResponse::created);
         }
         return Single.just(HttpResponse.badRequest("User Already Exist!"));
@@ -63,17 +64,38 @@ public class AppController {
     }
 
     @Get("/details")
-    public Single<Object> getDetails(Authentication authentication){
-        if(ownerService.getOwner(authentication.getName()) != null)
+    public Single<Object> getDetails(Authentication authentication) {
+        if (ownerService.getOwner(authentication.getName()) != null)
             return Single.just(ownerService.getOwner(authentication.getName()));
         else
             return Single.just(HttpResponse.unauthorized().body("Unauthorized"));
     }
 
     @Put("/details")
-    public Single<Object> updateDetails(@Valid @Body Owner ownerObj){
+    public Single<Object> updateDetails(@Body Owner ownerObj, Authentication auth) {
+        System.out.println();
+        Owner temp;
+        try {
+            temp = (Owner) ownerService.getOwner(auth.getName()).get(auth.getName());
+        } catch (NullPointerException e) {
+            return Single.just(HttpResponse.unauthorized()/*.body("Login First using  http://localhost:8080/login")*/);
+        }
 
-        return Single.just("");
+        HashMap<String, Owner> updated = new HashMap<>();
+        updated.put(ownerObj.user_name, ownerObj);
+        Owner temp1 = (Owner) updated.get(ownerObj.user_name);
+
+        temp1.id = temp.id;
+        temp1.password = ownerObj.password;
+        temp1.user_name = ownerObj.user_name;
+        temp1.address = temp.address;
+        temp1.email = temp.email;
+        temp1.full_name = temp.full_name;
+
+        if (ownerService.hasUser(temp.user_name)) {
+            return ownerService.updateOwner(auth, temp.user_name, temp1).map(HttpResponse::created);
+        }
+        return Single.just(HttpResponse.badRequest("Error!!"));
     }
 
 }
@@ -93,3 +115,34 @@ public class AppController {
     JSONObject ja = new JSONObject();
         ja.merge(data.get(authentication.getName()));
                 return Single.just(ja.get("id"));*/
+
+
+/*
+Owner temp;
+        if (!String.valueOf(ownerService.getOwner(auth.getName()).get(auth.getName())).equals("null")) {
+            temp = (Owner) ownerService.getOwner(auth.getName()).get(auth.getName());
+        } else {
+            return Single.just(HttpResponse.badRequest("Error!!"));
+        }
+
+
+        //HashMap<String, Object> old = new HashMap<>();
+        //old.put(String.valueOf(ownerService.getOwner(auth.getName()).get("id")), ownerService.getOwner(auth.getName()));
+
+        HashMap<String, Owner> updated = new HashMap<>();
+        updated.put(ownerObj.user_name, ownerObj);
+        Owner temp1 = (Owner) updated.get(ownerObj.user_name);
+
+
+        temp1.id = temp.id;
+        temp1.password = ownerObj.password;
+        temp1.user_name = ownerObj.user_name;
+        //if(temp.address != null && temp.email != null && temp.full_name != null) {
+        temp1.address = temp.address;
+        temp1.email = temp.email;
+        temp1.full_name = temp.full_name;
+        //}
+        //System.out.println(temp);
+        //System.out.println("UPDATED DATA: " + temp1 + "\n\n");
+        //return Single.just(updated);
+        */
