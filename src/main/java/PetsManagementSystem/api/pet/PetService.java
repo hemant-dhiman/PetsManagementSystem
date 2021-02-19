@@ -1,4 +1,4 @@
-package PetsManagementSystem.api;
+package PetsManagementSystem.api.pet;
 
 import io.reactivex.Single;
 import lombok.ToString;

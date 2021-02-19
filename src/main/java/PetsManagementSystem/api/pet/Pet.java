@@ -1,4 +1,4 @@
-package PetsManagementSystem.api;
+package PetsManagementSystem.api.pet;
 
 import io.micronaut.core.annotation.Introspected;
 import lombok.Getter;

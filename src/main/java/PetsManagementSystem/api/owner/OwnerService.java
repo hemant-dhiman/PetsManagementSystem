@@ -1,4 +1,4 @@
-package PetsManagementSystem.api;
+package PetsManagementSystem.api.owner;
 
 import io.micronaut.security.authentication.Authentication;
 import io.reactivex.Single;

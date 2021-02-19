@@ -1,5 +1,6 @@
-package PetsManagementSystem.api;
+package PetsManagementSystem.api.auth;
 
+import PetsManagementSystem.api.owner.OwnerService;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.security.authentication.*;

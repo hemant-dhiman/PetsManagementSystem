@@ -1,4 +1,4 @@
-package PetsManagementSystem.api;
+package PetsManagementSystem.api.utility;
 
 import com.nimbusds.jose.shaded.json.JSONObject;
 import io.micronaut.security.authentication.Authentication;

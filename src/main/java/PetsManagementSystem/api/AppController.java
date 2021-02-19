@@ -1,5 +1,9 @@
-package PetsManagementSystem.api;
+/*package PetsManagementSystem.api;
 
+import PetsManagementSystem.api.owner.Owner;
+import PetsManagementSystem.api.owner.OwnerService;
+import PetsManagementSystem.api.pet.Pet;
+import PetsManagementSystem.api.pet.PetService;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.*;
 import io.micronaut.security.annotation.Secured;
@@ -163,7 +167,7 @@ public class AppController {
     }
 
 }
-
+*/
 /*
     // pet entry
     @Inject
