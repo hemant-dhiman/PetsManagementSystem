@@ -51,22 +51,21 @@ public class AppController {
         });
     }
 
-    @Get("/pet/{id}")
-    public Single<Object> getPet(@QueryValue String id, Authentication authentication) {
-        String o_Id = UserUtility.currentUserId(authentication);
+    @Get("/pet/{petId}")
+    public Single<Object> getPet(@QueryValue String petId, Authentication authentication) {
+        String ownerId = UserUtility.currentUserId(authentication);
         //get Pet from Database
         Pet pet;
         try {
-            pet = (Pet) petService.getPet(id, o_Id).get(id);
+            pet = (Pet) petService.getPet(petId, ownerId).get(petId);
         } catch (Exception e) {
-            return Single.just(HttpResponse.unauthorized().body("pet id: " + id + " does not exist for user id " + o_Id + " or username " + authentication.getName()));
+            return Single.just(HttpResponse.unauthorized().body("pet id: " + petId + " does not exist for user id " + ownerId + " or username " + authentication.getName()));
         }
         try {
             return Single.just(pet);
         } catch (Exception e) {
-            return Single.just(HttpResponse.badRequest().body("pet id: " + id + " does not exist for user id " + o_Id + " or username " + authentication.getName()));
+            return Single.just(HttpResponse.badRequest().body("pet id: " + petId + " does not exist for user id " + ownerId + " or username " + authentication.getName()));
         }
-
     }
 
     @Get("/details")
@@ -90,9 +89,9 @@ public class AppController {
             return Single.just(HttpResponse.unauthorized());
         }
         //Storing updated Owner data
-        HashMap<String, Owner> updated = new HashMap<>();
-        updated.put(ownerObj.user_name, ownerObj);
-        Owner updatedOwnerData = (Owner) updated.get(ownerObj.user_name);
+        HashMap<String, Owner> updates = new HashMap<>();
+        updates.put(ownerObj.user_name, ownerObj);
+        Owner updatedOwnerData = (Owner) updates.get(ownerObj.user_name);
         //password and user_name should be updated
         updatedOwnerData.password = ownerObj.password;
         updatedOwnerData.user_name = ownerObj.user_name;
@@ -109,31 +108,31 @@ public class AppController {
     }
 
 
-    @Put("/pet/{id}")
-    public Single<Object> updatePet(@Body Pet petObj, @QueryValue String id, Authentication authentication) {
+    @Put("/pet/{petId}")
+    public Single<Object> updatePet(@Body Pet petObj, @QueryValue String petId, Authentication authentication) {
         if (petObj.name.equals("") || petObj.species.equals("") || petObj.breed.equals("") || petObj.color.equals("")) {
             return Single.just(HttpResponse.badRequest().body("Four fields require to update the pet: [name, species, breed, color]"));
         }
         // To get the current Logged user id
-        String o_Id = UserUtility.currentUserId(authentication);
+        String ownerId = UserUtility.currentUserId(authentication);
 
         // Store the Old Pet Data
         Pet oldPetData;
         try {
-            oldPetData = (Pet) petService.getPet(id, o_Id).get(id);
+            oldPetData = (Pet) petService.getPet(petId, ownerId).get(petId);
         } catch (NullPointerException e) {
-            return Single.just(HttpResponse.badRequest().body("pet id: " + id + " does not exist for user id " + o_Id + " or username " + authentication.getName()));
+            return Single.just(HttpResponse.badRequest().body("pet id: " + petId + " does not exist for user id " + ownerId + " or username " + authentication.getName()));
         }
         // Store updated pet data
-        HashMap<String, Pet> updated = new HashMap<>();
-        updated.put(petObj.id, petObj);
-        Pet updatedPetData = (Pet) updated.get(petObj.id);
+        HashMap<String, Pet> updates = new HashMap<>();
+        updates.put(petObj.id, petObj);
+        Pet updatedPetData = (Pet) updates.get(petObj.id);
         // id and owner_id must be same
         try {
             updatedPetData.id = oldPetData.id;
             updatedPetData.o_id = oldPetData.o_id;
         } catch (Exception e) {
-            return Single.just(HttpResponse.unauthorized().body("pet id: " + id + " does not exist for user id " + o_Id + " or username " + authentication.getName()));
+            return Single.just(HttpResponse.unauthorized().body("pet id: " + petId + " does not exist for user id " + ownerId + " or username " + authentication.getName()));
         }
         //update the other four field of pet
         updatedPetData.name = petObj.name;
@@ -147,22 +146,20 @@ public class AppController {
         return Single.just(HttpResponse.badRequest("Error!!"));
     }
 
-    @Delete("/pet/{id}")
-    public Single<Object> deletePet(@QueryValue String id, Authentication authentication) {
+    @Delete("/pet/{petId}")
+    public Single<Object> deletePet(@QueryValue String petId, Authentication authentication) {
         // To get the current Logged user id
-        String o_Id = UserUtility.currentUserId(authentication);
-        System.out.println("Test Id:" + o_Id);
-
+        String ownerId = UserUtility.currentUserId(authentication);
         Pet pet;
         try {
-            pet = (Pet) petService.getPet(id, o_Id).get(id);
+            pet = (Pet) petService.getPet(petId, ownerId).get(petId);
         } catch (Exception e) {
-            return Single.just(HttpResponse.unauthorized().body("pet id: " + id + " does not exist for user id " + o_Id + " or username " + authentication.getName()));
+            return Single.just(HttpResponse.unauthorized().body("pet id: " + petId + " does not exist for user id " + ownerId + " or username " + authentication.getName()));
         }
-        if (pet != null && pet.o_id.equals(o_Id)) {
-            return Single.just(petService.popPet(id));
+        if (pet != null && pet.o_id.equals(ownerId)) {
+            return Single.just(petService.popPet(petId));
         }
-        return Single.just(HttpResponse.unauthorized().body("pet id: " + id + " does not exist for user id " + o_Id + " or username " + authentication.getName()));
+        return Single.just(HttpResponse.unauthorized().body("pet id: " + petId + " does not exist for user id " + ownerId + " or username " + authentication.getName()));
     }
 
 }
