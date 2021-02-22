@@ -17,15 +17,17 @@ public class AuthenticationUser implements AuthenticationProvider {
     @Inject
     private OwnerService ownerService;
 
-
     @Override
     public Publisher<AuthenticationResponse> authenticate(@Nullable HttpRequest<?> httpRequest, AuthenticationRequest<?, ?> authenticationRequest) {
         String userName = authenticationRequest.getIdentity().toString();
-        if (ownerService.hasUser(userName, authenticationRequest.getSecret().toString())) {
-            UserDetails details = new UserDetails(userName, Collections.singletonList("ROLE_OWNER"), ownerService.getOwner(userName));
-            //UserDetails d = new UserDetails();
+        String passWord = authenticationRequest.getSecret().toString();
+        if (!ownerService.hasUser(userName)) {
+            return Flowable.just(new AuthenticationFailed(AuthenticationFailureReason.USER_NOT_FOUND));
+        } else if (ownerService.hasUser(userName, passWord)) {
+            UserDetails details = new UserDetails(userName, Collections.singletonList("ROLE_OWNER"), ownerService.getOwnerAttributes(userName));
             return Flowable.just(details);
+        } else {
+            return Flowable.just(new AuthenticationFailed(AuthenticationFailureReason.CREDENTIALS_DO_NOT_MATCH));
         }
-        return Flowable.just(new AuthenticationFailed("Credentials are Not Valid"));
     }
 }

@@ -6,7 +6,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 @Introspected
 @Getter
@@ -23,7 +22,9 @@ public class Pet {
     String id;
     String o_id;
     @NotBlank
-    String name;
+    //@Min(value = 5, message = "Name should be minimum of 5 character")
+            //@Max(value = 15, message = "User Name should be maximum of 15 character")
+            String name;
     @NotBlank
     String species;
     @NotBlank
@@ -31,22 +32,10 @@ public class Pet {
     @NotBlank
     String color;
 
-    public Pet(@NotNull String name, @NotNull String species, @NotNull String breed, @NotNull String color) {
+    public Pet(@NotBlank String name, @NotBlank String species, @NotBlank String breed, @NotBlank String color) {
         this.name = name;
         this.species = species;
         this.breed = breed;
         this.color = color;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getO_id() {
-        return o_id;
-    }
-
-    public void setO_id(String o_id) {
-        this.o_id = o_id;
     }
 }

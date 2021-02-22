@@ -4,9 +4,7 @@ import io.reactivex.Single;
 import lombok.ToString;
 
 import javax.inject.Singleton;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Singleton
@@ -15,65 +13,60 @@ public class PetService {
 
     private ConcurrentHashMap<String, Pet> pets = new ConcurrentHashMap<>();
 
-    public Single<Object> addPet(String o_Id, Pet petObj) {
+    public Single<Pet> addPet(String o_Id, Pet petObj) {
         String generateID = String.valueOf(pets.size() + 1);
         petObj.setId(generateID);
         petObj.setO_id(o_Id);
         pets.put(generateID, petObj);
-        System.out.println("Pet added: " + pets);
+        //System.out.println("Pet added: " + pets);
         return Single.just(petObj);
 
     }
 
-    public Object[] pets(String o_Id) {
+    public List<Pet> pets(String o_Id) {
         ConcurrentHashMap<String, Pet> ownersPet = new ConcurrentHashMap<>();
         for (Map.Entry<String, Pet> map : pets.entrySet()) {
             String petId = map.getKey();
             Pet pet = map.getValue();
             if (pet.o_id.equals(o_Id)) {
-                //System.out.println(pet.o_id);
                 ownersPet.put(petId, pet);
             }
-
         }
-        return Collections.list(ownersPet.elements()).toArray();
+        return new ArrayList<>(ownersPet.values());
     }
 
-    public Object pet(String o_Id, String id) {
-        return pets.get(id);
-    }
 
-    public HashMap<String, Object> getPet(String petId, String o_id) {
-        HashMap<String, Object> obj = new HashMap<>();
-        if (!String.valueOf(pets.get(petId)).equals("null")) {
+    public Pet getPet(String petId, String oId) {
+        HashMap<String, Pet> obj = new HashMap<>();
+        if (pets.get(petId) != null) {
             for (Map.Entry<String, Pet> map : pets.entrySet()) {
                 String id = map.getKey();
                 Pet pet = map.getValue();
-                if (pet.id.equals(petId) && pet.o_id.equals(o_id)) {
+                if (pet.id.equals(petId) && pet.o_id.equals(oId)) {
                     obj.put(id, pet);
                 }
             }
-            System.out.println("pet attributes: ----> " + obj + "\n");
-            return obj;
+            return obj.get(petId);
         }
         return null;
     }
 
-    public Single<Object> updatePet(String old_key, Pet petObj) {
-        pets.remove(old_key);
-        pets.put(petObj.id, petObj);
-        System.out.println("pet updated: -----> " + pets + "\n");
-        return Single.just(petObj);
+    public Pet updatePet(String oId, String pet_id, Pet petObj) {
+        if (getPet(pet_id, oId) != null) {
+            petObj.setId(pet_id);
+            petObj.setO_id(oId);
+            pets.put(pet_id, petObj);
+            //System.out.println("pet updated: -----> " + pets + "\n");
+            return petObj;
+        }
+        return null;
     }
 
-    public Boolean hasPet(String obj) {
-        return pets.containsKey(obj);
-    }
-
-    public Single<Object> popPet(String key) {
-        Pet p = pets.remove(key);
-        System.out.println("Delete Pet: " + p);
-        return Single.just(p);
+    public Pet deletePet(String oId, String pet_id) {
+        if (getPet(pet_id, oId) != null) {
+            return pets.remove(pet_id);
+        }
+        return null;
     }
 
 }
