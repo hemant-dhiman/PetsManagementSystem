@@ -35,7 +35,7 @@ public class Owner {
     @Email(message = "Please Enter a valid Email ID")
     String email;
     @NotBlank
-    @Size(min = 5)
+    @Size(min = 5, max = 22)
     String password;
     @NotBlank
     Address address;

@@ -22,14 +22,14 @@ public class PetController {
     private PetService petService;
 
 
-    @Post("/")
+    @Post
     //@Secured("ROLE_OWNER")
     public Single<Pet> addPets(@Valid @NotNull @RequestBean Pet petObj, @NotNull Authentication authentication) {
         String o_Id = UserUtility.currentUserId(authentication);
         return petService.addPet(o_Id, petObj);
     }
 
-    @Get("/")
+    @Get
     public Single<List<Pet>> allPet(@NotNull Authentication authentication) {
         String o_Id = UserUtility.currentUserId(authentication);
         return Single.just(petService.pets(o_Id));

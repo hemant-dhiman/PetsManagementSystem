@@ -24,7 +24,7 @@ public class OwnerController {
     @Secured(SecurityRule.IS_ANONYMOUS)
     public Single<Owner> addUser(@NotNull @Valid @RequestBean Owner ownerObj) {
         if (!ownerService.hasUser(ownerObj.user_name)) {
-            return ownerService.addOwner(ownerObj);
+            return Single.just(ownerService.addOwner(ownerObj));
         }
         return Single.error(new HttpStatusException(HttpStatus.BAD_REQUEST, "User Already Exist"));
     }

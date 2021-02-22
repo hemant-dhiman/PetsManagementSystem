@@ -1,7 +1,6 @@
 package PetsManagementSystem.api.owner;
 
 import io.micronaut.security.authentication.Authentication;
-import io.reactivex.Single;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
@@ -15,27 +14,37 @@ public class OwnerService {
 
     private ConcurrentHashMap<String, Owner> owners = new ConcurrentHashMap<>();
 
+
+    private OwnerPasswordEncrypt ownerPasswordEncryptor;
+
+    public OwnerService(OwnerPasswordEncrypt ownerPasswordEncryptor) {
+        this.ownerPasswordEncryptor = ownerPasswordEncryptor;
+    }
+
+
     @PostConstruct
     void addTestUser() {
         owners.put("HD", new Owner("1", "Hemant Dhiman", "HD", "hemant@gmail.com",
-                "12345", new Address("Rani tal", "Partap Bhawan", "Sirmaur",
-                "Himachal Pradesh", "173001")));
+                ownerPasswordEncryptor.encrypt("12345"), new Address("Rani tal", "Partap Bhawan",
+                "Sirmaur", "Himachal Pradesh", "173001")));
     }
 
-    public Single<Owner> addOwner(@NotNull Owner ownerObj) {
+    public Owner addOwner(@NotNull Owner ownerObj) {
         String generateId = String.valueOf(owners.size() + 1);
         ownerObj.setId(generateId);
+        ownerObj.setPassword(ownerPasswordEncryptor.encrypt(ownerObj.password));
         owners.put(ownerObj.user_name, ownerObj);
-        System.out.println("Owner added: -----> " + owners + "\n");
-        return Single.just(ownerObj);
+        return owners.get(ownerObj.user_name);
     }
 
     public Owner updateOwner(Authentication authentication, OwnerManage ownerManage) {
         Owner owner = owners.get(authentication.getName());
         owner.setUser_name(ownerManage.getUsername());
-        owner.setPassword(ownerManage.getPassword());
+        owner.setPassword(ownerPasswordEncryptor.encrypt(ownerManage.getPassword()));
         owners.remove(authentication.getName());
-        return owners.put(ownerManage.getUsername(), owner);
+        //System.out.println(owner);
+        owners.put(ownerManage.getUsername(), owner);
+        return owners.get(ownerManage.username);
     }
 
 
@@ -43,7 +52,7 @@ public class OwnerService {
         boolean has = false;
         for (Map.Entry<String, Owner> i : owners.entrySet()) {
             Owner obj = i.getValue();
-            if (obj.user_name.equals(usr) && obj.password.equals(psw)) {
+            if (obj.user_name.equals(usr) && ownerPasswordEncryptor.decrypt(obj.password).equals(psw)) {
                 has = true;
                 break;
             }
@@ -59,7 +68,7 @@ public class OwnerService {
         HashMap<String, Object> obj = new HashMap<>();
         if (!String.valueOf(owners.get(usr)).equals("null")) {
             obj.put(usr, owners.get(usr));
-            System.out.println("user attributes: ----> " + obj + "\n");
+            //System.out.println("user attributes: ----> " + obj + "\n");
             return obj;
         }
         return null;
